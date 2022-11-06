@@ -6,13 +6,20 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
+import java.time.Duration;
+
 public class Sensor extends AbstractBehavior<Sensor.Command> {
     private Sensor(ActorContext<Command> context) {
         super(context);
     }
 
     public static Behavior<Command> create() {
-        return Behaviors.setup(Sensor::new);
+        return Behaviors.setup(context -> {
+            return Behaviors.withTimers(timers -> {
+                timers.startTimerWithFixedDelay(new TriggerMeasurement(), Duration.ofSeconds(2));
+                return new Sensor(context);
+            });
+        });
     }
 
     @Override
