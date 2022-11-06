@@ -17,11 +17,21 @@ public class Sensor extends AbstractBehavior<Sensor.Command> {
 
     @Override
     public Receive<Command> createReceive() {
-        return newReceiveBuilder().build();
+        return newReceiveBuilder()
+                .onMessage(TriggerMeasurement.class, this::onTriggerMeasurement)
+                .build();
+    }
+
+    private Behavior<Command> onTriggerMeasurement(TriggerMeasurement command) {
+        double temperature = (Math.random() * 60) - 30;
+        getContext().getLog().info("Measured temperature: {}", temperature);
+        return Behaviors.same();
     }
 
     public interface Command {
     }
+
+    public record TriggerMeasurement() implements Command {}
 
     public interface Event {
     }
