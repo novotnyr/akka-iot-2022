@@ -1,16 +1,27 @@
 package com.github.novotnyr.akka.iot;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import akka.actor.typed.receptionist.Receptionist;
 
 import java.time.Duration;
+import java.util.Set;
 
 public class Sensor extends AbstractBehavior<Sensor.Command> {
     private Sensor(ActorContext<Command> context) {
         super(context);
+
+        var receptionistMessageAdapter = context.messageAdapter(
+                Receptionist.Listing.class, this::adaptReceptionistListing);
+
+        Receptionist.Command message = Receptionist.subscribe(Aggregator.AGGREGATOR, receptionistMessageAdapter);
+        context.getSystem()
+               .receptionist()
+               .tell(message);
     }
 
     public static Behavior<Command> create() {
@@ -35,10 +46,22 @@ public class Sensor extends AbstractBehavior<Sensor.Command> {
         return Behaviors.same();
     }
 
+    private Command adaptReceptionistListing(Receptionist.Listing event) {
+        Set<ActorRef<Aggregator.Command>> serviceInstances = event.getServiceInstances(Aggregator.AGGREGATOR);
+        if (serviceInstances.size() != 1) {
+            getContext().getLog().error("Incorrect number of Aggregators. Found: {}", serviceInstances.size());
+            return new SetAggregator(getContext().getSystem().deadLetters());
+        }
+        ActorRef<Aggregator.Command> aggregator = serviceInstances.iterator().next();
+        return new SetAggregator(aggregator);
+    }
+
     public interface Command {
     }
 
     public record TriggerMeasurement() implements Command {}
+
+    public record SetAggregator(ActorRef<Aggregator.Command> aggregator) implements Command {}
 
     public interface Event {
     }
