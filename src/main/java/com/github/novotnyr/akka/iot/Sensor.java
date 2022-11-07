@@ -12,6 +12,8 @@ import java.time.Duration;
 import java.util.Set;
 
 public class Sensor extends AbstractBehavior<Sensor.Command> {
+    private ActorRef<Aggregator.Command> aggregator;
+
     private Sensor(ActorContext<Command> context) {
         super(context);
 
@@ -22,6 +24,8 @@ public class Sensor extends AbstractBehavior<Sensor.Command> {
         context.getSystem()
                .receptionist()
                .tell(message);
+
+        this.aggregator = getContext().getSystem().deadLetters();
     }
 
     public static Behavior<Command> create() {
@@ -37,12 +41,20 @@ public class Sensor extends AbstractBehavior<Sensor.Command> {
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(TriggerMeasurement.class, this::onTriggerMeasurement)
+                .onMessage(SetAggregator.class, this::onSetAggregator)
                 .build();
     }
 
     private Behavior<Command> onTriggerMeasurement(TriggerMeasurement command) {
         double temperature = (Math.random() * 60) - 30;
         getContext().getLog().info("Measured temperature: {}", temperature);
+        return Behaviors.same();
+    }
+
+
+    private Behavior<Command> onSetAggregator(SetAggregator command) {
+        this.aggregator = command.aggregator();
+        getContext().getLog().error("Reassigned aggregator {}", this.aggregator);
         return Behaviors.same();
     }
 
