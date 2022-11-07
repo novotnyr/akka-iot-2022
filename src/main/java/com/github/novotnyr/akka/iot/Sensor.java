@@ -48,6 +48,9 @@ public class Sensor extends AbstractBehavior<Sensor.Command> {
     private Behavior<Command> onTriggerMeasurement(TriggerMeasurement command) {
         double temperature = (Math.random() * 60) - 30;
         getContext().getLog().info("Measured temperature: {}", temperature);
+
+        this.aggregator.tell(new Aggregator.RecordTemperature(temperature, getContext().getSelf()));
+
         return Behaviors.same();
     }
 

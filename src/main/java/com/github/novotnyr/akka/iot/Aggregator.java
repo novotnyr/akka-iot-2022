@@ -1,5 +1,6 @@
 package com.github.novotnyr.akka.iot;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -27,7 +28,13 @@ public class Aggregator extends AbstractBehavior<Aggregator.Command> {
 
     @Override
     public Receive<Command> createReceive() {
-        return newReceiveBuilder().build();
+        return newReceiveBuilder()
+                .onMessage(RecordTemperature.class, this::recordTemperature)
+                .build();
+    }
+
+    private Behavior<Command> recordTemperature(RecordTemperature command) {
+        return Behaviors.same();
     }
 
     public interface Command {
@@ -35,4 +42,6 @@ public class Aggregator extends AbstractBehavior<Aggregator.Command> {
 
     public interface Event {
     }
+
+    public record RecordTemperature(double temperature, ActorRef<Sensor.Command> sensor) implements Command {}
 }
