@@ -9,6 +9,8 @@ import akka.actor.typed.javadsl.Receive;
 import akka.actor.typed.receptionist.Receptionist;
 import akka.actor.typed.receptionist.ServiceKey;
 
+import java.io.Serializable;
+
 public class Aggregator extends AbstractBehavior<Aggregator.Command> {
     public static final ServiceKey<Aggregator.Command> AGGREGATOR
             = ServiceKey.create(Aggregator.Command.class, "Aggregator");
@@ -34,6 +36,7 @@ public class Aggregator extends AbstractBehavior<Aggregator.Command> {
     }
 
     private Behavior<Command> recordTemperature(RecordTemperature command) {
+        getContext().getLog().info("Received temperature {} from {}", command.temperature(), command.sensor());
         return Behaviors.same();
     }
 
@@ -43,5 +46,5 @@ public class Aggregator extends AbstractBehavior<Aggregator.Command> {
     public interface Event {
     }
 
-    public record RecordTemperature(double temperature, ActorRef<Sensor.Command> sensor) implements Command {}
+    public record RecordTemperature(double temperature, ActorRef<Sensor.Command> sensor) implements Command, Serializable {}
 }
