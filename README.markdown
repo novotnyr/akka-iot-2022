@@ -33,3 +33,7 @@ Pri spúšťaní nastavíme parametre JVM:
 Druhá inštancia pobeží na porte 10002.
 
 Odkazujeme sa na _seed node_ na porte 10001.
+
+## Architektúra
+
+![Architektúra](architecture.png)

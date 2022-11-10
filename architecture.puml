@@ -1,0 +1,47 @@
+@startuml
+
+interface Aggregator.Command
+
+class Aggregator.SendTemperature
+
+Aggregator.Command <|-- Aggregator.SendTemperature
+
+
+interface Sensor.Command
+
+class Sensor.TriggerMeasurement
+class Sensor.SetAggregator
+
+Sensor.SetAggregator .. Receptionist.Listing: "adapted via\nmessage adapter"
+
+Receptionist.Listing <<Message>>
+Receptionist.Register <<Message>>
+
+Sensor.Command <|-- Sensor.TriggerMeasurement
+Sensor.Command <|-- Sensor.SetAggregator
+
+class Aggregator << (A,Salmon) actor>>
+
+class Sensor << (A,Salmon) actor>>
+class Receptionist <<(A,white) akka>>
+
+MessageAdapter <<Akka>>
+
+Sensor -->  Aggregator #line:RoyalBlue;line.bold;text:RoyalBlue : "SendTemperature"
+Sensor ->  Sensor #line:RoyalBlue;line.bold;text:RoyalBlue : "TriggerMeasurement": <i>periodic</i>
+
+Receptionist -> MessageAdapter #line:RoyalBlue;line.bold;text:RoyalBlue : "Receptionist.Listing"
+MessageAdapter ---> Sensor #line:RoyalBlue;line.bold;text:RoyalBlue : "Sensor.SetAggregator"
+
+Aggregator ->  Receptionist #line:RoyalBlue;line.bold;text:RoyalBlue : "Receptionist.Register"
+
+Receptionist -[hidden]- Sensor
+
+hide <<Message>> circle
+
+skinparam defaultFontName Roboto
+skinparam class {
+	BackgroundColor<<Akka>> WhiteSmoke
+	BorderColor<<Akka>> WhiteSmoke
+}
+@enduml
